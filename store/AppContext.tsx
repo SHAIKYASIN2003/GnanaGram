@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, Post, Story, Message, Chat } from '../types';
+import { User, Post, Story, Message, Chat, Notification } from '../types';
 
 // Mock Data
 const MOCK_USERS: User[] = [
@@ -8,8 +8,6 @@ const MOCK_USERS: User[] = [
   { id: 'u3', username: 'travel_bug', fullName: 'Sarah Jenkins', avatarUrl: 'https://picsum.photos/seed/sarah/150/150', bio: 'Wanderlust ✈️', followers: 5400, following: 120 },
   { id: 'ai_bot', username: 'gemini_ai', fullName: 'Gemini Assistant', avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/8/8a/Google_Gemini_logo.svg', bio: 'I am your AI assistant.', followers: 1000000, following: 0, isVerified: true }
 ];
-
-const CURRENT_USER_ID = 'u1';
 
 const MOCK_POSTS: Post[] = [
   { id: 'p1', userId: 'u2', imageUrl: 'https://picsum.photos/seed/nature/800/800', caption: 'Found this amazing spot today! #nature #vibes', likes: ['u1', 'u3'], comments: [], timestamp: Date.now() - 3600000, aspectRatio: 1 },
@@ -21,36 +19,55 @@ const MOCK_STORIES: Story[] = [
     { id: 's2', userId: 'u3', imageUrl: 'https://picsum.photos/seed/story2/600/1000', isViewed: false, timestamp: Date.now() },
 ];
 
+const MOCK_NOTIFICATIONS: Notification[] = [
+    { id: 'n1', type: 'like', userId: 'u2', postId: 'p1', timestamp: Date.now() - 100000, isRead: false },
+    { id: 'n2', type: 'follow', userId: 'u3', timestamp: Date.now() - 200000, isRead: false },
+    { id: 'n3', type: 'comment', userId: 'u2', postId: 'p1', timestamp: Date.now() - 500000, isRead: true },
+];
+
 interface AppContextType {
-  currentUser: User;
+  currentUser: User | null;
   users: User[];
   posts: Post[];
   stories: Story[];
+  notifications: Notification[];
   addPost: (post: Post) => void;
   likePost: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
   messages: Message[];
   sendMessage: (receiverId: string, text: string) => void;
   toggleFollow: (userId: string) => void;
+  login: (email: string) => void;
+  logout: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
   const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
   const [stories, setStories] = useState<Story[]>(MOCK_STORIES);
+  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
   const [messages, setMessages] = useState<Message[]>([
       { id: 'm1', senderId: 'ai_bot', receiverId: 'u1', text: 'Hi Alex! I can help you write captions or find ideas.', timestamp: Date.now(), isRead: false }
   ]);
 
-  const currentUser = users.find(u => u.id === CURRENT_USER_ID) || users[0];
+  const login = (email: string) => {
+      // Mock login - always logs in as first user
+      setCurrentUser(MOCK_USERS[0]);
+  };
+
+  const logout = () => {
+      setCurrentUser(null);
+  };
 
   const addPost = (post: Post) => {
     setPosts([post, ...posts]);
   };
 
   const likePost = (postId: string) => {
+    if (!currentUser) return;
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
         const isLiked = p.likes.includes(currentUser.id);
@@ -64,6 +81,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addComment = (postId: string, text: string) => {
+    if (!currentUser) return;
     setPosts(prev => prev.map(p => {
       if (p.id === postId) {
         return {
@@ -76,6 +94,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const sendMessage = (receiverId: string, text: string) => {
+      if (!currentUser) return;
       const newMessage: Message = {
           id: Date.now().toString(),
           senderId: currentUser.id,
@@ -88,13 +107,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const toggleFollow = (userId: string) => {
-      // In a real app, this would update followers/following lists.
-      // Visual only for now
       console.log(`Toggled follow for ${userId}`);
   };
 
   return (
-    <AppContext.Provider value={{ currentUser, users, posts, stories, addPost, likePost, addComment, messages, sendMessage, toggleFollow }}>
+    <AppContext.Provider value={{ 
+        currentUser, users, posts, stories, notifications,
+        addPost, likePost, addComment, messages, sendMessage, toggleFollow,
+        login, logout
+    }}>
       {children}
     </AppContext.Provider>
   );

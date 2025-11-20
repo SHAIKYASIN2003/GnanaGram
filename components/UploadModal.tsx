@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Icons } from './Icons';
 import { useApp } from '../store/AppContext';
-import { generateImageCaption } from '../services/geminiService';
+import { generateImageCaption, moderateContent } from '../services/geminiService';
 import { Post } from '../types';
 
 interface UploadModalProps {
@@ -16,9 +16,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => 
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [caption, setCaption] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (!isOpen) return null;
+  if (!isOpen || !currentUser) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -26,19 +27,19 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => 
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setStep('edit');
+      setError(null);
     }
   };
 
   const handleGenerateCaption = async () => {
     if (!selectedFile) return;
     setIsGenerating(true);
+    setError(null);
     
-    // Convert file to base64
     const reader = new FileReader();
     reader.readAsDataURL(selectedFile);
     reader.onloadend = async () => {
       const base64Data = reader.result as string;
-      // Remove header (data:image/jpeg;base64,)
       const base64Content = base64Data.split(',')[1];
       const generated = await generateImageCaption(base64Content, caption);
       setCaption(generated);
@@ -46,8 +47,18 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => 
     };
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!selectedFile) return;
+    setIsGenerating(true); // Re-use loading state
+
+    // Moderate content
+    const isOffensive = await moderateContent(caption);
+    
+    if (isOffensive) {
+        setError("Your caption contains inappropriate content and violates our community guidelines.");
+        setIsGenerating(false);
+        return;
+    }
     
     const newPost: Post = {
       id: Date.now().toString(),
@@ -63,6 +74,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => 
     
     addPost(newPost);
     handleClose();
+    setIsGenerating(false);
   };
 
   const handleClose = () => {
@@ -70,6 +82,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => 
     setSelectedFile(null);
     setPreviewUrl('');
     setCaption('');
+    setError(null);
     onClose();
   };
 
@@ -85,7 +98,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => 
           )}
           <span className="font-semibold">Create new post</span>
           {step === 'edit' ? (
-            <button onClick={handleShare} className="text-blue-500 font-bold text-sm hover:text-blue-400">Share</button>
+            <button 
+                onClick={handleShare} 
+                disabled={isGenerating}
+                className="text-blue-500 font-bold text-sm hover:text-blue-400 disabled:opacity-50"
+            >
+                {isGenerating ? 'Sharing...' : 'Share'}
+            </button>
           ) : (
             <div className="w-6" />
           )}
@@ -131,6 +150,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose }) => 
                   value={caption}
                   onChange={(e) => setCaption(e.target.value)}
                 />
+
+                {error && (
+                    <div className="px-4 pb-2 text-red-500 text-xs">
+                        {error}
+                    </div>
+                )}
                 
                 <div className="px-4 pb-4 border-b border-zinc-800">
                   <button 

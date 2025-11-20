@@ -51,3 +51,12 @@ export interface Chat {
   timestamp: number;
   unreadCount: number;
 }
+
+export interface Notification {
+  id: string;
+  type: 'like' | 'comment' | 'follow';
+  userId: string;
+  postId?: string;
+  timestamp: number;
+  isRead: boolean;
+}
