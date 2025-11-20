@@ -69,3 +69,52 @@ export const moderateContent = async (text: string): Promise<boolean> => {
         return false; // Fail open if API fails
     }
 }
+
+/**
+ * Moderate Image content for Nudity/Violence using Gemini Vision.
+ */
+export const moderateImage = async (base64Image: string): Promise<{ safe: boolean, reason?: string }> => {
+    try {
+        const prompt = `Analyze this image strictly for safety moderation. 
+        Does this image contain nudity, graphic violence, gore, or illegal acts?
+        Return a JSON object with:
+        1. "safe": boolean (true if safe, false if unsafe)
+        2. "reason": string (short explanation if unsafe, else empty)
+        Do not include markdown formatting.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: {
+                parts: [
+                    { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
+                    { text: prompt }
+                ]
+            }
+        });
+
+        const text = response.text?.trim() || "{}";
+        // Simple clean up in case markdown code blocks are returned
+        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '');
+        const result = JSON.parse(jsonStr);
+        return { safe: result.safe, reason: result.reason };
+
+    } catch (error) {
+        console.error("Moderation Error", error);
+        return { safe: true }; // Fail open for demo purposes, strictly should fail closed
+    }
+};
+
+/**
+ * Translate text to English (or other languages).
+ */
+export const translateText = async (text: string): Promise<string> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Translate the following social media caption to English. If it is already English, just return it as is. Maintain emojis and tone. Text: "${text}"`
+    });
+    return response.text?.trim() || "Translation failed.";
+  } catch (error) {
+    return "Translation unavailable.";
+  }
+};

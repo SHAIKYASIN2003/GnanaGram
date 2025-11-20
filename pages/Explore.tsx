@@ -16,6 +16,21 @@ export const ExplorePage = () => {
                 </div>
             </div>
 
+            {/* AI Recommendations Section */}
+            <div className="px-4 pb-4">
+                <div className="flex items-center mb-3">
+                    <Icons.AI className="w-5 h-5 text-blue-400 mr-2" />
+                    <h3 className="font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Recommended for you</h3>
+                </div>
+                <div className="flex space-x-2 overflow-x-auto hide-scrollbar pb-2">
+                    {['Nature', 'Photography', 'Digital Art', 'Travel', 'Tech'].map((tag, i) => (
+                        <div key={i} className="px-4 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-sm font-semibold whitespace-nowrap hover:bg-zinc-800 cursor-pointer transition">
+                            #{tag}
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             {/* Grid */}
             <div className="grid grid-cols-3 gap-1 md:gap-4 pb-10">
                 {Array.from({length: 20}).map((_, i) => (

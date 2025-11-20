@@ -7,6 +7,22 @@ export interface User {
   followers: number;
   following: number;
   isVerified?: boolean;
+  highlights?: Highlight[];
+  isAdmin?: boolean;
+  
+  // New Profile Edit Fields
+  email?: string;
+  phone?: string;
+  links?: { title: string; url: string }[];
+  isPrivate?: boolean;
+  themeColor?: string;
+}
+
+export interface Highlight {
+  id: string;
+  title: string;
+  coverUrl: string;
+  stories: Story[];
 }
 
 export interface Comment {
@@ -14,6 +30,21 @@ export interface Comment {
   userId: string;
   text: string;
   timestamp: number;
+  isPinned?: boolean;
+}
+
+export interface AudioTrack {
+  id: string;
+  title: string;
+  artist: string;
+  coverUrl: string;
+  duration: string;
+}
+
+export interface ProductTag {
+  id: string;
+  name: string;
+  price: string;
 }
 
 export interface Post {
@@ -26,6 +57,15 @@ export interface Post {
   timestamp: number;
   location?: string;
   aspectRatio?: number; // 1 for square, 0.8 for portrait
+  music?: AudioTrack;
+  tags?: string[];
+  isFlagged?: boolean;
+  
+  // New Features
+  coAuthors?: string[]; // IDs of other users
+  scheduledTime?: number; // Timestamp for future publish
+  editHistory?: { caption: string; timestamp: number }[];
+  productTags?: ProductTag[];
 }
 
 export interface Story {
@@ -54,9 +94,10 @@ export interface Chat {
 
 export interface Notification {
   id: string;
-  type: 'like' | 'comment' | 'follow';
-  userId: string;
+  type: 'like' | 'comment' | 'follow' | 'system';
+  userId: string; // Originator
   postId?: string;
+  text?: string;
   timestamp: number;
   isRead: boolean;
 }

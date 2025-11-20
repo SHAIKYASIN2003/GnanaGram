@@ -10,6 +10,7 @@ import { ProfilePage } from './pages/Profile';
 import { Messages } from './pages/Messages';
 import { Reels } from './pages/Reels';
 import { Notifications } from './pages/Notifications';
+import { AdminDashboard } from './pages/AdminDashboard';
 
 // -- Sidebar Component --
 const Sidebar = ({ onCreateOpen }: { onCreateOpen: () => void }) => {
@@ -62,6 +63,13 @@ const Sidebar = ({ onCreateOpen }: { onCreateOpen: () => void }) => {
            <img src={currentUser.avatarUrl} className="w-6 h-6 rounded-full border border-white/20" />
            <span className="ml-4 text-md hidden lg:block font-semibold">Profile</span>
         </Link>
+
+        {currentUser.isAdmin && (
+             <Link to="/admin" className={`flex items-center p-3 rounded-lg mt-4 text-zinc-400 hover:text-white hover:bg-zinc-900 ${isActive('/admin') ? 'text-white bg-zinc-900' : ''}`}>
+                <Icons.Settings className="w-6 h-6" />
+                <span className="ml-4 text-md hidden lg:block font-semibold">Admin Panel</span>
+             </Link>
+        )}
       </nav>
 
       <div className="pb-6 px-2">
@@ -111,6 +119,7 @@ const Layout = () => {
                     <Route path="/explore" element={<ExplorePage />} />
                     <Route path="/reels" element={<Reels />} />
                     <Route path="/notifications" element={<Notifications />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
                 </Routes>
             </main>
             <BottomBar onCreateOpen={() => setIsUploadOpen(true)} />
