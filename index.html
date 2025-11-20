@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>InstaGemini</title>
+    <script>
+      // Suppress Tailwind CSS CDN warning as we are intentionally using it for this demo environment
+      const originalWarn = console.warn;
+      console.warn = (...args) => {
+        if (args[0] && typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) {
+          return;
+        }
+        originalWarn.apply(console, args);
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       /* Custom Scrollbar for cleaner look */

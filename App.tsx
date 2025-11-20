@@ -46,7 +46,6 @@ const Sidebar = ({ onCreateOpen }: { onCreateOpen: () => void }) => {
       <nav className="flex-1">
         <NavItem to="/" icon={Icons.Home} label="Home" active={isActive('/')} />
         <NavItem to="/explore" icon={Icons.Search} label="Search" active={isActive('/explore')} />
-        <NavItem to="/explore" icon={Icons.Reels} label="Explore" active={false} />
         <NavItem to="/reels" icon={Icons.Video} label="Reels" active={isActive('/reels')} />
         <NavItem to="/messages" icon={Icons.Send} label="Messages" active={isActive('/messages')} />
         <NavItem to="/notifications" icon={Icons.Activity} label="Notifications" active={isActive('/notifications')} badge={unreadNotifications} />

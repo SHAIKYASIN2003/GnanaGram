@@ -1,5 +1,5 @@
 {
-  "name": "Copy of InstaGemini",
+  "name": "InstaGemini",
   "description": "A fully functional Instagram-like social platform enhanced with Gemini AI for content generation and moderation.",
   "requestFramePermissions": [
     "camera",
